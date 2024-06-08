@@ -1,0 +1,69 @@
+# 读取文件中的成绩。
+# 计算每名学生的总成绩和平均成绩，并按总成绩对学生进行排序。
+# 计算每门课程的平均分和总平均分。
+# 替换低于60分的成绩为“不及格”。
+# 将处理后的数据保存到新文件。
+
+# 读取文件中的数据
+def read_grades(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    headers = lines[0].strip().split()
+    student_grades = [line.strip().split() for line in lines[1:]]
+    return headers, student_grades
+
+# 计算总分和平均分
+def calculate_averages(student_grades):
+    for student in student_grades:
+        grades = list(map(int, student[1:]))
+        total = sum(grades)
+        average = total / len(grades)
+        student.append(total)
+        student.append(average)
+
+# 按总分降序排序
+def sort_students(student_grades):
+    student_grades.sort(key=lambda x: x[-2], reverse=True)  # Sort by total score
+
+# 替换不及格成绩
+def replace_failing(grades, threshold=60):
+    return ["不及格" if int(grade) < threshold else grade for grade in grades]
+
+# 计算科目平均分
+def calculate_subject_averages(student_grades, num_subjects):
+    totals = [0] * num_subjects
+    for student in student_grades:
+        grades = list(map(int, student[1:num_subjects + 1]))
+        for i in range(num_subjects):
+            totals[i] += grades[i]
+    averages = [total / len(student_grades) for total in totals]
+    return totals, averages
+
+# 写入处理后的数据到新文件
+def write_new_report(file_path, headers, student_grades, subject_averages):
+    with open(file_path, 'w', encoding='utf-8') as file:
+        # Write headers
+        file.write(' '.join(headers + ['总分', '平均分']) + '\n')
+
+        # Write student grades
+        for index, student in enumerate(student_grades, start=1):
+            student[1:-2] = replace_failing(student[1:-2])
+            student_line = ' '.join(map(str, [index] + student))
+            file.write(student_line + '\n')
+
+        # Write subject averages
+        total_avg = sum(subject_averages) / len(subject_averages)
+        averages_line = ' '.join(['平均'] + [f"{x:.2f}" for x in subject_averages + [total_avg]])
+        file.write(averages_line + '\n')
+
+# Paths
+input_file = '/Users/yanxingyun/Desktop/report.txt'
+output_file = '/Users/yanxingyun/Desktop/report2.txt'
+
+# Process data
+headers, student_grades = read_grades(input_file)
+calculate_averages(student_grades)
+sort_students(student_grades)
+num_subjects = len(headers) - 1
+_, subject_averages = calculate_subject_averages(student_grades, num_subjects)
+write_new_report(output_file, headers, student_grades, subject_averages)
