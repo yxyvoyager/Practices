@@ -1,0 +1,39 @@
+import requests
+import time
+
+
+def get_weather(city):
+    api_url = f"http://v1.yiketianqi.com/free/day?appid=57738655&appsecret=HXWwBJG6&unescape=1&city={city}"
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(api_url)
+            response.raise_for_status()
+            weather_data = response.json()
+            # 打印完整的响应数据进行调试
+            print("完整的响应数据：", weather_data)
+            # 从响应数据中获取天气信息
+            weather = weather_data.get('wea', '信息获取失败')
+            temperature = weather_data.get('tem', '未知')
+            wind = weather_data.get('win', '未知')
+            wind_speed = weather_data.get('win_speed', '未知')
+
+            # 打印详细的天气信息
+            print(f"{city}的当前天气情况：")
+            print(f"天气：{weather}")
+            print(f"温度：{temperature}°C")
+            print(f"风向：{wind}")
+            print(f"风速：{wind_speed}")
+            return
+        except requests.RequestException as e:
+            print(f"请求错误：{e}")
+            if attempt < max_retries - 1:
+                print("正在重试...")
+                time.sleep(2)  # 等待一段时间再重试
+            else:
+                print("多次重试后仍然失败，请稍后再试。")
+
+
+if __name__ == "__main__":
+    city = input("请输入你想查询天气的城市名称：")
+    get_weather(city)
